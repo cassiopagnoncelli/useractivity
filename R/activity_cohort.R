@@ -1,11 +1,4 @@
-library(xts)
 library(magrittr)
-library(dplyr)
-library(plotly)
-library(ggplot2)
-library(xts)
-library(tidyr)
-library(lubridate)
 
 #' @description Build a cohort matrix from an activity feed.
 #' @param activity_feed An xts object with two columns: user_id and activity.
@@ -23,7 +16,7 @@ cohort_matrix <- function(activity_feed, transform_percent = TRUE) {
     stop("activity_feed must have two columns user_id and activity")
   }
   # Transform feed.
-  feed_df <- data.frame(index(activity_feed), coredata(activity_feed))
+  feed_df <- data.frame(zoo::index(activity_feed), zoo::coredata(activity_feed))
   names(feed_df) <- c("timestamp", "user_id", "activity")
 
   # Step 1: Convert timestamp to Date format and extract year_month
@@ -32,25 +25,33 @@ cohort_matrix <- function(activity_feed, transform_percent = TRUE) {
 
   # Step 2: Group by user and get the first activity month
   user_cohort <- feed_df %>%
-    group_by(user_id) %>%
-    summarize(first_activity_month = min(year_month))
+    dplyr::group_by(user_id) %>%
+    dplyr::summarize(first_activity_month = min(year_month))
 
   # Step 3: Calculate the number of months since the first activity
   feed_df <- feed_df %>%
-    left_join(user_cohort, by = "user_id") %>%
-    mutate(months_since_first = interval(
-      ymd(paste0(first_activity_month, "-01")), timestamp) %/% months(1))
+    dplyr::left_join(user_cohort, by = "user_id") %>%
+    dplyr::mutate(
+      months_since_first =
+        lubridate::interval(
+          lubridate::ymd(paste0(first_activity_month, "-01")),
+          timestamp
+        ) %/%
+        months(1)
+    )
 
   # Step 4: Build the cohorts matrix
   cohorts_matrix <- feed_df %>%
-    group_by(first_activity_month, months_since_first) %>%
-    summarize(active_users = n_distinct(user_id)) %>%
-    pivot_wider(names_from = months_since_first,
+    dplyr::group_by(first_activity_month, months_since_first) %>%
+    dplyr::summarize(active_users = dplyr::n_distinct(user_id)) %>%
+    tidyr::pivot_wider(names_from = months_since_first,
                 values_from = active_users,
                 values_fill = 0)
 
   # Calculate cohorts in percentage
-  cohorts_perc <- cohorts_matrix %>% mutate(across(`0`:`23`, ~ . / `0` * 100))
+  cohorts_perc <- cohorts_matrix %>%
+    dplyr::mutate(across(`0`:`23`, ~ . / `0` * 100))
+
   matrix <- if (transform_percent) { cohorts_perc } else { cohorts_matrix }
 
   return(matrix)
@@ -61,34 +62,34 @@ cohort_matrix <- function(activity_feed, transform_percent = TRUE) {
 plot_cohort <- function(cohorts_matrix) {
   # Pivot longer for plotting
   cohorts_long <- cohorts_matrix %>%
-    pivot_longer(cols = -first_activity_month,
-                 names_to = "month",
-                 values_to = "percentage")
+    tidyr::pivot_longer(cols = -first_activity_month,
+                        names_to = "month",
+                        values_to = "percentage")
 
   # Convert month to numeric
   cohorts_long <- cohorts_long %>%
-    mutate(month = as.numeric(month))
+    dplyr::mutate(month = as.numeric(month))
 
   # Create the ggplot heat map
-  p <- ggplot(cohorts_long,
-              aes(x = month,
+  p <- ggplot2::ggplot(cohorts_long,
+              ggplot2::aes(x = month,
                   y = first_activity_month,
                   fill = percentage,
                   text = sprintf("%.1f%%", percentage))) +
-    geom_tile() +
-    scale_fill_gradient(low = "white", high = "blue") +
-    scale_y_discrete(
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_gradient(low = "white", high = "blue") +
+    ggplot2::scale_y_discrete(
       limits = rev(levels(factor(cohorts_long$first_activity_month)))) +
-      labs(
+      ggplot2::labs(
         title = "Cohort Retention Rate (%)",
         x = "Months since first activity",
         y = "First activity month"
       ) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    ggplot2::theme_minimal() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
   # Convert ggplot to plotly for interactive tooltips
-  p_plotly <- ggplotly(p, tooltip = "text")
+  p_plotly <- plotly::ggplotly(p, tooltip = "text")
 
   # Display the interactive plot
   p_plotly

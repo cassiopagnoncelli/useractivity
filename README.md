@@ -1,6 +1,7 @@
 # UserActivity
 
-Based on user activity data, this package provides functions to study user activity.
+Based on user activity data, this package provides functions to study user
+activity.
 
 ## Installation
 
