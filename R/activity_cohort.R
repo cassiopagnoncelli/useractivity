@@ -50,7 +50,9 @@ cohort_matrix <- function(activity_feed, transform_percent = TRUE) {
 
   # Calculate cohorts in percentage
   cohorts_perc <- cohorts_matrix %>%
-    dplyr::mutate(across(`0`:`23`, ~ . / `0` * 100))
+    dplyr::mutate(
+      dplyr::across(`0`:`23`, ~ . / `0` * 100)
+    )
 
   matrix <- if (transform_percent) { cohorts_perc } else { cohorts_matrix }
 
