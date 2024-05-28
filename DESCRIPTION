@@ -1,7 +1,7 @@
 Package: useractivity
 Type: Package
 Title: Analyse user activity
-Version: 1.0.0.9000
+Version: 1.1.1
 Author: Cassio Pagnoncelli <cassiopagnoncelli@gmail.com>
 Maintainer: Cassio Pagnoncelli <cassiopagnoncelli@gmail.com>
 Authors@R:
@@ -17,17 +17,13 @@ Depends:
     R (>= 4.4.0)
 Imports:
     dplyr,
-    R6,
     magrittr (>= 2.0.3),
-    jsonlite (>= 1.8.8),
-    uuid,
     plotly (>= 4.10.4),
-    htmlwidgets,
-    fitdistrplus,
     ggplot2 (>= 3.5.1),
     xts (>= 0.13.2),
-    dygraphs (>= 1.1.1.6),
-    shiny (>= 1.8.1.1)
+    tidyr (>= 1.3.1),
+    lubridate (>= 1.9.3),
+    Matrix (>= 1.7.0)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Suggests:

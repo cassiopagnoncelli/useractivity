@@ -1,1 +1,11 @@
-exportPattern("^[[:alpha:]]+")
+#' @import xts
+#' @import dplyr
+#' @import magrittr
+#' @import plotly
+#' @import ggplot2
+#' @import tidyr
+#' @import lubridate
+
+export(markov_chain)
+export(cohort_matrix)
+export(plot_cohort)
